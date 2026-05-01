@@ -95,9 +95,9 @@ class TerminalContainerView: NSView {
         terminal.processDelegate = delegate
         delegates[tabId] = delegate
 
-        let (shellArgs, shellEnv) = buildShellConfig()
+        let (shellExec, shellArgs, shellEnv) = buildShellConfig()
         terminal.startProcess(
-            executable: settings.shell,
+            executable: shellExec,
             args: shellArgs,
             environment: shellEnv,
             execName: nil,
@@ -153,7 +153,7 @@ class TerminalContainerView: NSView {
 
     /// Returns (args, environment) for the configured shell.
     /// Injects a custom prompt and OSC 7 CWD reporting for both zsh and bash.
-    private func buildShellConfig() -> (args: [String], env: [String]) {
+    private func buildShellConfig() -> (executable: String, args: [String], env: [String]) {
         let shellPath = settings.shell
         let shellName = URL(fileURLWithPath: shellPath).lastPathComponent
         let home      = FileManager.default.homeDirectoryForCurrentUser.path
@@ -204,12 +204,12 @@ class TerminalContainerView: NSView {
             try? FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: true)
             try? rc.write(toFile: tempDir + "/.zshrc", atomically: true, encoding: .utf8)
             baseEnv["ZDOTDIR"] = tempDir
-            return ([], baseEnv.map { "\($0.key)=\($0.value)" })
+            return (shellPath, [], baseEnv.map { "\($0.key)=\($0.value)" })
 
         // ── bash ───────────────────────────────────────────────────────────
         case "bash":
-            baseEnv["BASH_SILENCE_DEPRECATION_WARNING"] = "1"
-            let rcPath = NSTemporaryDirectory() + "pixel_terminal_bashrc"
+            let rcPath      = NSTemporaryDirectory() + "pixel_terminal_bashrc"
+            let wrapperPath = NSTemporaryDirectory() + "pixel_terminal_bash_wrapper.sh"
             let rc = """
             # ── Pixel Terminal shell integration ──────────────────────────
             # 1. Source the user's ~/.bash_profile or ~/.bashrc
@@ -229,18 +229,23 @@ class TerminalContainerView: NSView {
             # 4. Greeting
             \(greeting)
             """
+            // Wrapper sets BASH_SILENCE_DEPRECATION_WARNING before exec'ing bash,
+            // which is the only way to suppress it before bash's main() runs.
+            let wrapper = "#!/bin/sh\nexport BASH_SILENCE_DEPRECATION_WARNING=1\nexec \(shellPath) --rcfile \(rcPath)\n"
             try? rc.write(toFile: rcPath, atomically: true, encoding: .utf8)
-            return (["--rcfile", rcPath], baseEnv.map { "\($0.key)=\($0.value)" })
+            try? wrapper.write(toFile: wrapperPath, atomically: true, encoding: .utf8)
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: wrapperPath)
+            return (wrapperPath, [], baseEnv.map { "\($0.key)=\($0.value)" })
 
         // ── fish ───────────────────────────────────────────────────────────
         case "fish":
             // fish reads ~/.config/fish/config.fish; we can set FISH_TERM_PROGRAM
             // and rely on fish's built-in OSC 7 support (fish 3.2+)
             baseEnv["FISH_TERM_PROGRAM"] = "PixelTerminal"
-            return ([], baseEnv.map { "\($0.key)=\($0.value)" })
+            return (shellPath, [], baseEnv.map { "\($0.key)=\($0.value)" })
 
         default:
-            return ([], baseEnv.map { "\($0.key)=\($0.value)" })
+            return (shellPath, [], baseEnv.map { "\($0.key)=\($0.value)" })
         }
     }
 }
