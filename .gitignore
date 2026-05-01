@@ -1,0 +1,28 @@
+# Swift build artifacts
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+*.DS_Store
+
+# Distribution (users build from source)
+dist/
+
+# Generated icon assets (run `swift makeIcon.swift` to regenerate)
+Resources/AppIcon.iconset/
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+
+# Editor
+.vscode/
+*.swp
+*.swo
+
+# Secrets / credentials (never commit these)
+*.env
+secrets.swift
