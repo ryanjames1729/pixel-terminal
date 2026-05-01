@@ -1,0 +1,3 @@
+# Only ship the bin script
+node_modules/
+*.dmg

@@ -1,0 +1,35 @@
+{
+  "name": "pixel-terminal",
+  "version": "0.1.0",
+  "description": "Install Pixel Terminal — native macOS terminal with smart suggestions, Claude Code integration, and a network command palette",
+  "keywords": [
+    "terminal",
+    "macos",
+    "claude",
+    "claude-code",
+    "network",
+    "ssh",
+    "developer-tools"
+  ],
+  "homepage": "https://github.com/ryanjames1729/pixel-terminal",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ryanjames1729/pixel-terminal.git",
+    "directory": "npm-installer"
+  },
+  "bugs": "https://github.com/ryanjames1729/pixel-terminal/issues",
+  "author": "Ryan James <ryanjames1729@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  },
+  "bin": {
+    "pixel-terminal": "./bin/pixel-terminal.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "os": [
+    "darwin"
+  ]
+}
