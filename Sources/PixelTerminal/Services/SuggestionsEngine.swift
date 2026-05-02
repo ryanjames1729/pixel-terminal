@@ -30,7 +30,9 @@ private let builtinSubcommands: [String: [String]] = [
     "gh": ["pr", "issue", "repo", "gist", "workflow", "release", "auth"],
     "pip": ["install", "uninstall", "list", "show", "freeze"],
     "python3": ["-m", "-c", "--version"],
-    "vercel": ["dev", "build", "deploy", "env", "ls", "logs", "link", "pull"]
+    "vercel": ["dev", "build", "deploy", "env", "ls", "logs", "link", "pull"],
+    "claude": ["--help", "--version", "--continue", "--resume", "--dangerously-skip-permissions"],
+    "clear": []
 ]
 
 private let commonCorrections: [String: String] = [
@@ -202,7 +204,7 @@ struct SuggestionsEngine {
             }
         }
 
-        return Array(results.prefix(6))
+        return Array(results.prefix(4))
     }
 
     // MARK: – Claude API call

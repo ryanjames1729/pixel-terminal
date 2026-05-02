@@ -1,6 +1,6 @@
 {
   "name": "pixel-terminal",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Install Pixel Terminal — native macOS terminal with smart suggestions, Claude Code integration, and a network command palette",
   "keywords": [
     "terminal",

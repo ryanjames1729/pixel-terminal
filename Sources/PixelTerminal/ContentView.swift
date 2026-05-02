@@ -13,30 +13,24 @@ struct ContentView: View {
             // ── Left sidebar ──────────────────────────────────────────────
             SidebarView(tabManager: tabManager, onNewSession: addTab)
 
-            // ── Terminal area + status bar ────────────────────────────────
+            // ── Terminal area + suggestions + status bar ──────────────────
             VStack(spacing: 0) {
-                ZStack(alignment: .bottomLeading) {
-                    TerminalAreaView(tabManager: tabManager, settings: settings)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                TerminalAreaView(tabManager: tabManager, settings: settings)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                    // Suggestions overlay
-                    if !tabManager.suggestions.isEmpty {
-                        SuggestionsView(
-                            suggestions: tabManager.suggestions,
-                            selectedIndex: $tabManager.selectedSuggestionIndex,
-                            onAccept: { text in
-                                guard let tabId = tabManager.activeTabId else { return }
-                                tabManager.suggestions = []
-                                tabManager.currentInput = text
-                                tabManager.terminalContainer?.sendSuggestion(text, tabId: tabId)
-                            },
-                            onDismiss: { tabManager.suggestions = [] }
-                        )
-                        .padding(.leading, 12)
-                        .padding(.bottom, 6)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-                    }
-                }
+                // Permanent suggestions dock — always reserved so the terminal never reflows.
+                // Empty when there's nothing to suggest; populated as the user types.
+                SuggestionsDock(
+                    suggestions: tabManager.suggestions,
+                    selectedIndex: $tabManager.selectedSuggestionIndex,
+                    onAccept: { text in
+                        guard let tabId = tabManager.activeTabId else { return }
+                        tabManager.suggestions = []
+                        tabManager.currentInput = text
+                        tabManager.terminalContainer?.sendSuggestion(text, tabId: tabId)
+                    },
+                    onDismiss: { tabManager.suggestions = [] }
+                )
 
                 StatusBarView(tabManager: tabManager, onOpenSettings: { showSettings = true })
             }

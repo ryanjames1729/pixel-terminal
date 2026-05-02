@@ -200,6 +200,18 @@ struct SidebarView: View {
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(Color.sbDim)
                     .kerning(1.2)
+
+                let activeCount = tabManager.tabs.filter { $0.isRunning }.count
+                if activeCount > 0 {
+                    Text("\(activeCount)")
+                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                        .foregroundColor(.sbGreen)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.sbGreen.opacity(0.15))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+
                 Spacer()
                 Button(action: onNewSession) {
                     Image(systemName: "plus")

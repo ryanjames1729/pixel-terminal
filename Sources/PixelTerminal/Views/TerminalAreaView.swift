@@ -18,12 +18,36 @@ class TerminalContainerView: NSView {
         wantsLayer = true
         layer?.backgroundColor = NSColor(red: 0.055, green: 0.055, blue: 0.102, alpha: 0.97).cgColor
         setupEventMonitor()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(windowDidBecomeKey),
+            name: NSWindow.didBecomeKeyNotification,
+            object: nil)
     }
 
     required init?(coder: NSCoder) { fatalError() }
 
     deinit {
         if let monitor = eventMonitor { NSEvent.removeMonitor(monitor) }
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    // Re-focus the active terminal whenever this window comes to front
+    @objc private func windowDidBecomeKey() {
+        guard let tm = tabManager, let activeId = tm.activeTabId,
+              let terminal = terminals[activeId] else { return }
+        window?.makeFirstResponder(terminal)
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard window != nil else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let tm = self.tabManager,
+                  let activeId = tm.activeTabId,
+                  let terminal = self.terminals[activeId] else { return }
+            self.window?.makeFirstResponder(terminal)
+        }
     }
 
     // MARK: – Event monitor for Tab/Escape interception + input tracking
@@ -83,7 +107,7 @@ class TerminalContainerView: NSView {
         terminal.isHidden = true
         addSubview(terminal)
         NSLayoutConstraint.activate([
-            terminal.topAnchor.constraint(equalTo: topAnchor),
+            terminal.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             terminal.bottomAnchor.constraint(equalTo: bottomAnchor),
             terminal.leadingAnchor.constraint(equalTo: leadingAnchor),
             terminal.trailingAnchor.constraint(equalTo: trailingAnchor)
@@ -163,11 +187,11 @@ class TerminalContainerView: NSView {
         baseEnv["TERM"]                 = "xterm-256color"
         baseEnv["COLORTERM"]            = "truecolor"
         baseEnv["TERM_PROGRAM"]         = "PixelTerminal"
-        baseEnv["TERM_PROGRAM_VERSION"] = "0.1.0"
+        baseEnv["TERM_PROGRAM_VERSION"] = "0.2.0"
 
         // Greeting printed once when shell starts (true-color ANSI)
         let greeting = """
-        printf '\\033[38;2;129;140;248m  ▸ pixel-terminal\\033[0m \\033[38;2;74;85;104mv0.1.0\\033[0m\\n'
+        printf '\\033[38;2;129;140;248m  ▸ pixel-terminal\\033[0m \\033[38;2;74;85;104mv0.2.0\\033[0m\\n'
         printf '\\033[38;2;44;50;74m  ──────────────────────────────────────────────────\\033[0m\\n'
         printf '  \\033[38;2;74;85;104m⌘T\\033[0m \\033[38;2;110;231;183mnew session\\033[0m   \\033[38;2;74;85;104m⌘⇧C\\033[0m \\033[38;2;167;139;250mclaude code\\033[0m   \\033[38;2;74;85;104m⌘⇧N\\033[0m \\033[38;2;96;165;250mnetwork cmds\\033[0m\\n'
         printf '  \\033[38;2;44;50;74mTab\\033[0m \\033[38;2;44;50;74maccepts suggestions\\033[0m  ·  \\033[38;2;44;50;74mEsc\\033[0m \\033[38;2;44;50;74mdismisses\\033[0m\\n'

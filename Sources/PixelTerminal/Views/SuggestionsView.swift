@@ -1,5 +1,50 @@
 import SwiftUI
 
+// Permanent bottom dock for suggestions — always reserves space so the terminal never reflows.
+struct SuggestionsDock: View {
+    let suggestions: [Suggestion]
+    @Binding var selectedIndex: Int
+    let onAccept: (String) -> Void
+    let onDismiss: () -> Void
+
+    // Fixed height — ~5 rows × 28pt + small footer + chrome ≈ 168
+    private let dockHeight: CGFloat = 168
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            // Subtle separator between terminal and dock
+            Rectangle()
+                .fill(Color.white.opacity(0.05))
+                .frame(height: 1)
+                .frame(maxHeight: .infinity, alignment: .top)
+
+            if suggestions.isEmpty {
+                HStack {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 10))
+                    Text("Suggestions appear here as you type")
+                        .font(.system(size: 11, design: .monospaced))
+                }
+                .foregroundColor(Color(red: 0.255, green: 0.275, blue: 0.345))
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
+            } else {
+                SuggestionsView(
+                    suggestions: suggestions,
+                    selectedIndex: $selectedIndex,
+                    onAccept: onAccept,
+                    onDismiss: onDismiss
+                )
+                .padding(.horizontal, 12)
+                .padding(.top, 6)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .frame(height: dockHeight)
+        .background(Color(red: 0.039, green: 0.039, blue: 0.082))
+    }
+}
+
 struct SuggestionsView: View {
     let suggestions: [Suggestion]
     @Binding var selectedIndex: Int
