@@ -16,7 +16,9 @@ struct ContentView: View {
             // ── Terminal area + suggestions + status bar ──────────────────
             VStack(spacing: 0) {
                 TerminalAreaView(tabManager: tabManager, settings: settings)
+                    .padding(.top, 10)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(red: 0.055, green: 0.055, blue: 0.102))
 
                 // Permanent suggestions dock — always reserved so the terminal never reflows.
                 // Empty when there's nothing to suggest; populated as the user types.

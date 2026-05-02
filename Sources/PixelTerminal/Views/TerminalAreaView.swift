@@ -107,7 +107,7 @@ class TerminalContainerView: NSView {
         terminal.isHidden = true
         addSubview(terminal)
         NSLayoutConstraint.activate([
-            terminal.topAnchor.constraint(equalTo: topAnchor, constant: 10),
+            terminal.topAnchor.constraint(equalTo: topAnchor),
             terminal.bottomAnchor.constraint(equalTo: bottomAnchor),
             terminal.leadingAnchor.constraint(equalTo: leadingAnchor),
             terminal.trailingAnchor.constraint(equalTo: trailingAnchor)
@@ -187,11 +187,11 @@ class TerminalContainerView: NSView {
         baseEnv["TERM"]                 = "xterm-256color"
         baseEnv["COLORTERM"]            = "truecolor"
         baseEnv["TERM_PROGRAM"]         = "PixelTerminal"
-        baseEnv["TERM_PROGRAM_VERSION"] = "0.2.0"
+        baseEnv["TERM_PROGRAM_VERSION"] = "0.2.1"
 
         // Greeting printed once when shell starts (true-color ANSI)
         let greeting = """
-        printf '\\033[38;2;129;140;248m  ▸ pixel-terminal\\033[0m \\033[38;2;74;85;104mv0.2.0\\033[0m\\n'
+        printf '\\033[38;2;129;140;248m  ▸ pixel-terminal\\033[0m \\033[38;2;74;85;104mv0.2.1\\033[0m\\n'
         printf '\\033[38;2;44;50;74m  ──────────────────────────────────────────────────\\033[0m\\n'
         printf '  \\033[38;2;74;85;104m⌘T\\033[0m \\033[38;2;110;231;183mnew session\\033[0m   \\033[38;2;74;85;104m⌘⇧C\\033[0m \\033[38;2;167;139;250mclaude code\\033[0m   \\033[38;2;74;85;104m⌘⇧N\\033[0m \\033[38;2;96;165;250mnetwork cmds\\033[0m\\n'
         printf '  \\033[38;2;44;50;74mTab\\033[0m \\033[38;2;44;50;74maccepts suggestions\\033[0m  ·  \\033[38;2;44;50;74mEsc\\033[0m \\033[38;2;44;50;74mdismisses\\033[0m\\n'
