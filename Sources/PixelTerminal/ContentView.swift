@@ -80,7 +80,9 @@ struct ContentView: View {
             guard let window = NSApplication.shared.keyWindow else { return }
             window.titlebarAppearsTransparent = true
             window.styleMask.insert(.fullSizeContentView)
-            window.isMovableByWindowBackground = true
+            // Disabled — was hijacking click-and-drag selection inside the terminal.
+            // The window can still be moved by the title bar / sidebar header.
+            window.isMovableByWindowBackground = false
             window.backgroundColor = NSColor(red: 0.027, green: 0.027, blue: 0.059, alpha: 0.97)
         }
     }
