@@ -60,6 +60,23 @@ class TerminalContainerView: NSView {
                 return event
             }
 
+            // Intercept ⌘⇧C → Launch Claude Code
+            let onlyFlags = event.modifierFlags.intersection([.command, .shift, .control, .option])
+            if onlyFlags == [.command, .shift] {
+                if event.keyCode == 8 {  // C
+                    MainActor.assumeIsolated {
+                        NotificationCenter.default.post(name: .launchClaudeCode, object: nil)
+                    }
+                    return nil
+                }
+                if event.keyCode == 45 {  // N
+                    MainActor.assumeIsolated {
+                        NotificationCenter.default.post(name: .openNetworkPalette, object: nil)
+                    }
+                    return nil
+                }
+            }
+
             // Intercept Tab if suggestions are visible
             if event.keyCode == 48 {
                 let handled = MainActor.assumeIsolated { tm.acceptTopSuggestion() }
@@ -187,11 +204,11 @@ class TerminalContainerView: NSView {
         baseEnv["TERM"]                 = "xterm-256color"
         baseEnv["COLORTERM"]            = "truecolor"
         baseEnv["TERM_PROGRAM"]         = "PixelTerminal"
-        baseEnv["TERM_PROGRAM_VERSION"] = "0.3.0"
+        baseEnv["TERM_PROGRAM_VERSION"] = "0.3.1"
 
         // Greeting printed once when shell starts (true-color ANSI)
         let greeting = """
-        printf '\\033[38;2;129;140;248m  ▸ pixel-terminal\\033[0m \\033[38;2;74;85;104mv0.3.0\\033[0m\\n'
+        printf '\\033[38;2;129;140;248m  ▸ pixel-terminal\\033[0m \\033[38;2;74;85;104mv0.3.1\\033[0m\\n'
         printf '\\033[38;2;44;50;74m  ──────────────────────────────────────────────────\\033[0m\\n'
         printf '  \\033[38;2;74;85;104m⌘T\\033[0m \\033[38;2;110;231;183mnew session\\033[0m   \\033[38;2;74;85;104m⌘⇧C\\033[0m \\033[38;2;167;139;250mclaude code\\033[0m   \\033[38;2;74;85;104m⌘⇧N\\033[0m \\033[38;2;96;165;250mnetwork cmds\\033[0m\\n'
         printf '  \\033[38;2;44;50;74mTab\\033[0m \\033[38;2;44;50;74maccepts suggestions\\033[0m  ·  \\033[38;2;44;50;74mEsc\\033[0m \\033[38;2;44;50;74mdismisses\\033[0m\\n'
