@@ -9,7 +9,7 @@ const { execSync, spawnSync } = require('child_process');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const VERSION  = '0.3.1';
+const VERSION  = '0.4.0';
 const REPO     = 'ryanjames1729/pixel-terminal';
 const APP_NAME = 'Pixel Terminal.app';
 const DMG_URL  = `https://github.com/${REPO}/releases/download/v${VERSION}/PixelTerminal.dmg`;

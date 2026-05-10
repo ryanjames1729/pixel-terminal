@@ -53,7 +53,7 @@ actor TokenValidator {
     static func validateGitHub(token: String) async -> (valid: Bool, user: String?) {
         var req = URLRequest(url: URL(string: "https://api.github.com/user")!)
         req.setValue("token \(token)", forHTTPHeaderField: "Authorization")
-        req.setValue("PixelTerminal/0.3.1", forHTTPHeaderField: "User-Agent")
+        req.setValue("PixelTerminal/0.4.0", forHTTPHeaderField: "User-Agent")
         do {
             let (data, resp) = try await URLSession.shared.data(for: req)
             guard (resp as? HTTPURLResponse)?.statusCode == 200 else { return (false, nil) }
