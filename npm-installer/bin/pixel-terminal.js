@@ -129,6 +129,119 @@ function download(url, dest, hops = 0) {
   });
 }
 
+// ── Claude Code CLI ───────────────────────────────────────────────────────────
+
+function installClaudeCode() {
+  println('');
+  println(`${c.dim}  ──────────────────────────────────────────────────${c.reset}`);
+  println(`  ${c.purple}${c.bold}Claude Code CLI${c.reset}`);
+  println('');
+
+  // Check if already installed
+  const existing = spawnSync('claude', ['--version'], { stdio: 'pipe', shell: true });
+  if (existing.status === 0) {
+    const ver = existing.stdout.toString().trim();
+    ok(`Claude Code already installed${ver ? ' (' + ver + ')' : ''}`);
+    return;
+  }
+
+  step('Installing @anthropic-ai/claude-code via npm…');
+  const install = spawnSync('npm', ['install', '-g', '@anthropic-ai/claude-code'], { stdio: 'pipe' });
+  if (install.status !== 0) {
+    warn('Claude Code installation failed — install manually:');
+    warn('  npm install -g @anthropic-ai/claude-code');
+    return;
+  }
+  ok('Claude Code installed');
+
+  // Resolve the npm global bin directory
+  let npmBin;
+  try {
+    const prefix = execSync('npm prefix -g', { encoding: 'utf8' }).trim();
+    npmBin = path.join(prefix, 'bin');
+  } catch {
+    return; // npm prefix failed — PATH update not possible, but install succeeded
+  }
+
+  // If the bin is already reachable, nothing more to do
+  const pathDirs = (process.env.PATH || '').split(':');
+  if (pathDirs.includes(npmBin)) {
+    ok(`${npmBin} already in PATH`);
+    return;
+  }
+
+  // Append to the appropriate shell profile so future sessions find `claude`
+  const shell = process.env.SHELL || '';
+  let profile;
+  if (shell.includes('zsh'))       profile = path.join(os.homedir(), '.zshrc');
+  else if (shell.includes('bash')) profile = path.join(os.homedir(), '.bash_profile');
+  else                              profile = path.join(os.homedir(), '.profile');
+
+  const exportLine = `\nexport PATH="$PATH:${npmBin}"  # added by pixel-terminal installer\n`;
+  try {
+    fs.appendFileSync(profile, exportLine);
+    ok(`Added ${npmBin} to PATH in ${path.basename(profile)}`);
+    warn(`Restart your terminal or run: source ${profile}`);
+  } catch {
+    warn(`Could not update ${profile} — add this line manually:`);
+    warn(`  export PATH="$PATH:${npmBin}"`);
+  }
+}
+
+// ── Kali-equivalent tools (Homebrew) ─────────────────────────────────────────
+
+// Maps Homebrew formula → display label for the command it provides.
+// netdiscover and enum4linux are Linux-only and cannot be brewed on macOS.
+const KALI_TOOLS = [
+  { formula: 'arp-scan',  label: 'arp-scan'  },
+  { formula: 'masscan',   label: 'masscan'   },
+  { formula: 'hping',     label: 'hping3'    },
+  { formula: 'nbtscan',   label: 'nbtscan'   },
+  { formula: 'nikto',     label: 'nikto'     },
+  { formula: 'gobuster',  label: 'gobuster'  },
+  { formula: 'socat',     label: 'socat'     },
+  { formula: 'net-snmp',  label: 'snmpwalk'  },
+  { formula: 'samba',     label: 'smbclient' },
+  { formula: 'wireshark', label: 'tshark'    },
+];
+
+function installKaliTools() {
+  println('');
+  println(`${c.dim}  ──────────────────────────────────────────────────${c.reset}`);
+  println(`  ${c.purple}${c.bold}Kali Linux network tools${c.reset}`);
+  println('');
+
+  try {
+    execSync('which brew', { stdio: 'ignore' });
+  } catch {
+    warn('Homebrew not found — skipping Kali tool installation.');
+    warn('Install Homebrew from https://brew.sh then re-run this installer.');
+    return;
+  }
+  ok('Homebrew found');
+  println('');
+
+  for (const { formula, label } of KALI_TOOLS) {
+    const already = spawnSync('brew', ['list', '--formula', formula], { stdio: 'pipe' });
+    if (already.status === 0) {
+      ok(`${label} (already installed)`);
+      continue;
+    }
+    process.stdout.write(`${c.dim}  →${c.reset} Installing ${label}… `);
+    const res = spawnSync('brew', ['install', '--quiet', formula], { stdio: 'pipe' });
+    if (res.status === 0) {
+      process.stdout.write(`${c.mint}✓${c.reset}\n`);
+    } else {
+      process.stdout.write(`${c.yellow}skipped${c.reset}\n`);
+    }
+  }
+
+  println('');
+  warn('netdiscover / enum4linux are Linux-only — use them on a remote Kali host.');
+}
+
+// ── Main install ──────────────────────────────────────────────────────────────
+
 download(DMG_URL, tmpDmg)
   .then(() => {
     ok('Downloaded');
@@ -178,9 +291,29 @@ download(DMG_URL, tmpDmg)
     // ── Clean up temp DMG ─────────────────────────────────────────────────────
     try { fs.unlinkSync(tmpDmg); } catch {}
 
+    // ── Helper scripts ────────────────────────────────────────────────────────
+    step('Installing helper scripts…');
+    try {
+      const pixelDir = path.join(os.homedir(), '.pixel-terminal');
+      if (!fs.existsSync(pixelDir)) fs.mkdirSync(pixelDir, { recursive: true });
+      const scriptSrc = path.join(__dirname, 'pixel-http-server');
+      const scriptDst = path.join(pixelDir,  'pixel-http-server');
+      fs.copyFileSync(scriptSrc, scriptDst);
+      fs.chmodSync(scriptDst, 0o755);
+      ok('pixel-http-server → ~/.pixel-terminal/pixel-http-server');
+    } catch (e) {
+      warn(`Helper script install failed: ${e.message}`);
+    }
+
     // ── Launch ───────────────────────────────────────────────────────────────
     step('Launching Pixel Terminal…');
     spawnSync('open', [destApp], { stdio: 'ignore' });
+
+    // ── Claude Code CLI ──────────────────────────────────────────────────────
+    installClaudeCode();
+
+    // ── Kali tools ───────────────────────────────────────────────────────────
+    installKaliTools();
 
     // ── Done ─────────────────────────────────────────────────────────────────
     println('');

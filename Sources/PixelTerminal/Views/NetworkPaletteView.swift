@@ -165,6 +165,7 @@ struct NetworkPaletteView: View {
         case .http:         return "arrow.up.arrow.down.circle"
         case .security:     return "shield.lefthalf.filled"
         case .macos:        return "apple.logo"
+        case .kali:         return "terminal"
         }
     }
 
@@ -178,6 +179,7 @@ struct NetworkPaletteView: View {
         case .http:         return Color(red: 0.176, green: 0.831, blue: 0.745)
         case .security:     return Color(red: 0.973, green: 0.443, blue: 0.443)
         case .macos:        return Color(red: 0.478, green: 0.518, blue: 0.600)
+        case .kali:         return Color(red: 0.235, green: 0.706, blue: 0.443)
         }
     }
 }
